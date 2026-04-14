@@ -1,0 +1,12 @@
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme) prefix(tw);
+@import "tailwindcss/utilities.css" layer(utilities) prefix(tw);
+
+@theme {
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-sans: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --color-brand-amber: #f0a54a;
+  --color-brand-cream: #f6efe6;
+  --color-brand-ink: #090807;
+}
