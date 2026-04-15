@@ -9,7 +9,6 @@ import "./index.css";
 const slides = [
   {
     id: "reserve",
-    tag: "Whisky nights",
     titleLines: ["Rare bottles", "for slow evenings."],
     text: "Small-batch pours, polished presentation, and a hero banner that moves with more intent.",
     mood: "slide-reserve",
@@ -17,7 +16,6 @@ const slides = [
   },
   {
     id: "rooftop",
-    tag: "Gin season",
     titleLines: ["Bright mixes", "for rooftop hours."],
     text: "A softer motion pass keeps the slide alive while the words now sweep in from the left.",
     mood: "slide-rooftop",
@@ -25,7 +23,6 @@ const slides = [
   },
   {
     id: "cellar",
-    tag: "Cellar picks",
     titleLines: ["Dinner-ready bottles,", "framed properly."],
     text: "Three rotating scenes now sit under the navbar to make the landing page feel finished.",
     mood: "slide-cellar",
@@ -293,7 +290,6 @@ function App() {
               />
               <div className="slide-overlay" />
               <div className="slide-copy">
-                <span className="slide-tag slide-line">{slide.tag}</span>
                 <h2>
                   {slide.titleLines.map((line) => (
                     <span key={line} className="slide-line">
@@ -526,7 +522,6 @@ function App() {
           <div className="closing-shell">
             <div className="cta-card">
               <div className="cta-copy">
-                <span className="cta-kicker">Tonight's Order</span>
                 <h2>Stock the night in minutes.</h2>
                 <p>
                   Browse premium bottles, grab weekly offers, and get delivery lined up before the first glass is poured.
@@ -538,52 +533,99 @@ function App() {
               </div>
             </div>
 
-            <div className="footer-grid">
-              <div className="footer-brand">
-                <div className="footer-brand-mark">
-                  <img src={logoImage} alt="Tipsy logo" className="footer-logo" />
-                  <h3>Tipsy</h3>
-                </div>
-                <p>
-                  Premium bottle delivery with a cleaner storefront, faster ordering, and same-night convenience.
-                </p>
-              </div>
+            <>
+              <style>
+                {`
+                  @import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
+                  *{
+                    font-family: "Geist", sans-serif;
+                  }
+                `}
+              </style>
+              <div className='bg-black pt-6 px-0'>
+                <footer className="bg-[#131314] w-full text-white pt-8 lg:pt-12 px-1 sm:px-2 md:px-3 lg:px-4 rounded-tl-3xl rounded-tr-3xl overflow-hidden">
+                  <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-6 gap-8 md:gap-10 lg:gap-16">
+                    <div className="lg:col-span-3 space-y-6">
+                      <a href="#home" className="block footer-logo-link">
+                        <img src={logoImage} alt="Tipsy" className="footer-brand-image" />
+                      </a>
+                      <p className="text-base/7 text-neutral-300">
+                        Premium whisky, gin, wine, and party-ready bottles delivered across Nairobi with a smoother
+                        storefront and faster late-night ordering.
+                      </p>
+                      <div className="flex gap-5 md:gap-6 order-1 md:order-2">
+                        <a href="#" className="text-white hover:text-gray-300">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+                          </svg>
+                        </a>
+                        <a href="#" className="text-white hover:text-gray-300">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/>
+                          </svg>
+                        </a>
+                        <a href="#" className="text-white hover:text-gray-300">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/>
+                          </svg>
+                        </a>
+                        <a href="#" className="text-white hover:text-gray-300">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/>
+                          </svg>
+                        </a>
+                        <a href="#" className="text-white hover:text-gray-300">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                        </a>
+                      </div>
+                    </div>
 
-              <div className="footer-column">
-                <span className="footer-heading">Explore</span>
-                <a href="#home">Home</a>
-                <a href="#best-sellers">Best Sellers</a>
-                <a href="#categories">Categories</a>
-                <a href="#testimonials">Testimonials</a>
-              </div>
+                    <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-10 lg:gap-16 items-start">
+                      <div>
+                        <h3 className="font-semibold text-base mb-4">Shop</h3>
+                        <ul className="space-y-3 text-base text-neutral-300">
+                          <li><a href="#best-sellers" className="hover:text-neutral-400">Best Sellers</a></li>
+                          <li><a href="#categories" className="hover:text-neutral-400">Categories</a></li>
+                          <li><a href="#cta" className="hover:text-neutral-400">Weekly Offers</a></li>
+                        </ul>
+                      </div>
 
-              <div className="footer-column">
-                <span className="footer-heading">Support</span>
-                <a href="#why-tipsy">Why Tipsy</a>
-                <a href="#cta">Offers</a>
-                <a href="tel:+254700123456">+254 700 123 456</a>
-                <a href="mailto:hello@tipsy.co.ke">hello@tipsy.co.ke</a>
-              </div>
+                      <div>
+                        <h3 className="font-semibold text-base mb-4">Explore</h3>
+                        <ul className="space-y-3 text-base text-neutral-300">
+                          <li><a href="#home" className="hover:text-neutral-400">Home</a></li>
+                          <li><a href="#why-tipsy" className="hover:text-neutral-400">Why Tipsy</a></li>
+                          <li><a href="#experience" className="hover:text-neutral-400">Store Experience</a></li>
+                          <li><a href="#testimonials" className="hover:text-neutral-400">Testimonials</a></li>
+                        </ul>
+                      </div>
 
-              <div className="footer-column">
-                <span className="footer-heading">Hours</span>
-                <p>Mon - Thu: 4pm - 11pm</p>
-                <p>Fri - Sat: 2pm - 1am</p>
-                <p>Sun: 3pm - 10pm</p>
-                <p>Nairobi delivery zones available nightly.</p>
-              </div>
-            </div>
+                      <div className="col-span-2 md:col-span-1">
+                        <h3 className="font-semibold text-base mb-4">Contact</h3>
+                        <ul className="space-y-3 text-base text-neutral-300">
+                          <li><a href="tel:+254700123456" className="hover:text-neutral-400">+254 700 123 456</a></li>
+                          <li><a href="mailto:hello@tipsy.co.ke" className="hover:text-neutral-400">hello@tipsy.co.ke</a></li>
+                          <li className="flex items-center gap-2">
+                            <a href="#experience" className="hover:text-neutral-400">Late-night delivery</a>
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-orange-950 border border-orange-300 text-orange-300">LIVE</span>
+                          </li>
+                          <li><a href="#home" className="hover:text-neutral-400">Westlands, Kilimani, Riverside</a></li>
+                          <li><a href="#cta" className="hover:text-neutral-400">Order tonight</a></li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
 
-            <div className="footer-meta-row">
-              <div className="footer-meta">
-                <span>Fast delivery</span>
-                <span>Authentic bottles</span>
-                <span>Secure checkout</span>
+                  <div className="max-w-7xl mx-auto mt-6 pt-3 border-t border-neutral-700 flex justify-between items-center">
+                    <p className="text-neutral-400 text-base">2026 Tipsy Design</p>
+                    <p className="text-base text-neutral-400">All rights reserved.</p>
+                  </div>
+                  <div className="relative h-8 mt-0">
+                    <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-3xl h-full max-h-64 bg-orange-glow rounded-full blur-[170px] pointer-events-none" />
+                  </div>
+                </footer>
               </div>
-            </div>
-          </div>
-          <div className="footer-copyright">
-            <span>&copy; 2026 Tipsy. All rights reserved.</span>
+            </>
           </div>
         </section>
       </main>
