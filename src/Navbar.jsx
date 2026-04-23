@@ -29,7 +29,7 @@ function CartIcon() {
   );
 }
 
-function Navbar() {
+function Navbar({ cartCount = 0 }) {
   return (
     <header className="site-header">
       <nav className="navbar">
@@ -64,7 +64,7 @@ function Navbar() {
           <button className="cart-button" type="button" aria-label="Cart">
             <CartIcon />
             <span>Cart</span>
-            <strong>2</strong>
+            <strong>{cartCount}</strong>
           </button>
         </div>
       </nav>
