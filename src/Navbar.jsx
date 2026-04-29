@@ -29,11 +29,44 @@ function CartIcon() {
   );
 }
 
-function Navbar({ cartCount = 0 }) {
+function Navbar({
+  cartCount = 0,
+  homeHref = "/",
+  bestSellersHref = "/#best-sellers",
+  shopHref = "/categories",
+  contactHref = "/#contact",
+  searchTerm = "",
+  onSearchChange,
+  onSearchSubmit,
+  onNavigate,
+}) {
+  const handleNavigate = (event, href) => {
+    if (!onNavigate) {
+      return;
+    }
+
+    event.preventDefault();
+    onNavigate(href);
+  };
+
+  const handleSearchSubmit = (event) => {
+    if (event.key !== "Enter" || !onSearchSubmit) {
+      return;
+    }
+
+    event.preventDefault();
+    onSearchSubmit();
+  };
+
   return (
     <header className="site-header">
       <nav className="navbar">
-        <a className="brand-block" href="#home" aria-label="Tipsy home">
+        <a
+          className="brand-block"
+          href={homeHref}
+          aria-label="Tipsy home"
+          onClick={(event) => handleNavigate(event, homeHref)}
+        >
           <span className="brand-mark">
             <img src={logoImage} alt="Tipsy logo" />
           </span>
@@ -44,15 +77,21 @@ function Navbar({ cartCount = 0 }) {
 
         <div className="nav-center">
           <div className="nav-links">
-            <a href="#home">Home</a>
-            <a href="#best-sellers">Best Sellers</a>
-            <a href="#categories">Categories</a>
-            <a href="#why-tipsy">Why Tipsy</a>
+            <a href={homeHref} onClick={(event) => handleNavigate(event, homeHref)}>Home</a>
+            <a href={bestSellersHref} onClick={(event) => handleNavigate(event, bestSellersHref)}>Best Sellers</a>
+            <a href={shopHref} onClick={(event) => handleNavigate(event, shopHref)}>Shop</a>
+            <a href={contactHref} onClick={(event) => handleNavigate(event, contactHref)}>Contact</a>
           </div>
 
           <label className="search-shell" aria-label="Search products">
             <SearchIcon />
-            <input type="text" placeholder="Search whisky, gin, wine..." />
+            <input
+              type="text"
+              value={searchTerm}
+              placeholder="Search whisky, gin, wine..."
+              onChange={(event) => onSearchChange?.(event.target.value)}
+              onKeyDown={handleSearchSubmit}
+            />
           </label>
         </div>
 

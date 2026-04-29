@@ -15,7 +15,7 @@ const auth = (req, res, next) => {
     const decoded = jwt.verify(token, config.jwt.secret);
     req.user = decoded;
     next();
-  } catch (error) {
+  } catch (_error) {
     return res.status(401).json({
       success: false,
       message: 'Invalid token',
@@ -34,7 +34,7 @@ const optionalAuth = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, config.jwt.secret);
     req.user = decoded;
-  } catch (error) {
+  } catch (_error) {
     req.user = null;
   }
   next();

@@ -1,5 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Navbar from "./Navbar";
+import { CatalogView } from "./CatalogViews";
+import { dedupeProducts, getRouteFromLocation, slugify } from "./catalogUtils";
 import whiskeyImage from "./assets/whiskey.png";
 import ginImage from "./assets/Gin.png";
 import wineImage from "./assets/wine2.png";
@@ -54,41 +56,250 @@ const reasons = [
   },
 ];
 
+const occasionCards = [
+  {
+    id: "dinner-night",
+    accent: "Dinner pair",
+    eyebrow: "Curated pick",
+    title: "Dinner pair.",
+    categorySlug: "wine",
+    search: "red wine",
+    cta: "See picks",
+    detail: "Wine plus easy pairing",
+    image: wineImage,
+  },
+  {
+    id: "house-party",
+    accent: "Party setup",
+    eyebrow: "Ready combo",
+    title: "Party setup.",
+    categorySlug: "gin",
+    search: "gin vodka",
+    cta: "Open ideas",
+    detail: "Gin, vodka, mixer-ready",
+    image: ginImage,
+  },
+  {
+    id: "gift-bottle",
+    accent: "Gift-ready bottle",
+    eyebrow: "Premium pick",
+    title: "Gift-ready.",
+    categorySlug: "whisky",
+    search: "whisky reserve",
+    cta: "Browse gifts",
+    detail: "Reserve whisky picks",
+    image: whiskeyImage,
+  },
+];
+
+const fallbackCategories = [
+  {
+    id: "whisky",
+    name: "Whisky",
+    description: "Smoky reserves, smooth bourbons, and aged single malts.",
+    product_count: 0,
+  },
+  {
+    id: "gin",
+    name: "Gin",
+    description: "Botanical pours built for tonic nights and bright cocktails.",
+    product_count: 0,
+  },
+  {
+    id: "wine",
+    name: "Wine",
+    description: "Dinner reds, crisp whites, and bottles for slower evenings.",
+    product_count: 0,
+  },
+  {
+    id: "vodka",
+    name: "Vodka",
+    description: "Clean premium bottles for chilled serves and party mixes.",
+    product_count: 0,
+  },
+  {
+    id: "tequila",
+    name: "Tequila",
+    description: "Bold agave picks for shots, citrus mixes, and warmer nights.",
+    product_count: 0,
+  },
+  {
+    id: "mixers",
+    name: "Mixers",
+    description: "Tonics, sodas, and pairings that finish the bottle run properly.",
+    product_count: 0,
+  },
+];
+
+const fallbackProducts = [
+  {
+    id: "midnight-barrel",
+    name: "Midnight Barrel",
+    description: "Aged 12 years in oak casks",
+    price: 4800,
+    category_name: "Whisky",
+    is_featured: true,
+    is_on_sale: false,
+  },
+  {
+    id: "citrus-bloom-gin",
+    name: "Citrus Bloom Gin",
+    description: "Fresh citrus botanical blend",
+    price: 3600,
+    category_name: "Gin",
+    is_featured: true,
+    is_on_sale: false,
+  },
+  {
+    id: "velvet-cellar-red",
+    name: "Velvet Cellar Red",
+    description: "Full-bodied red wine from Napa",
+    price: 2950,
+    category_name: "Wine",
+    is_featured: true,
+    is_on_sale: false,
+  },
+  {
+    id: "reserve-12-whisky",
+    name: "Reserve 12 Whisky",
+    description: "Premium 12-year single malt",
+    price: 5200,
+    original_price: 5800,
+    category_name: "Whisky",
+    is_featured: true,
+    is_on_sale: true,
+  },
+  {
+    id: "golden-coast-gin",
+    name: "Golden Coast Gin",
+    description: "Coastal botanical gin",
+    price: 3900,
+    original_price: 4400,
+    category_name: "Gin",
+    is_featured: true,
+    is_on_sale: true,
+  },
+  {
+    id: "rosso-night-blend",
+    name: "Rosso Night Blend",
+    description: "Italian red blend",
+    price: 3250,
+    category_name: "Wine",
+    is_featured: true,
+    is_on_sale: false,
+  },
+  {
+    id: "smoked-oak-cask",
+    name: "Smoked Oak Cask",
+    description: "Smoky bourbon finish",
+    price: 5850,
+    category_name: "Whisky",
+    is_featured: true,
+    is_on_sale: false,
+  },
+  {
+    id: "garden-mist-gin",
+    name: "Garden Mist Gin",
+    description: "Cucumber and mint gin",
+    price: 3400,
+    category_name: "Gin",
+    is_featured: true,
+    is_on_sale: false,
+  },
+  {
+    id: "snow-peak-vodka",
+    name: "Snow Peak Vodka",
+    description: "Triple distilled premium",
+    price: 2800,
+    category_name: "Vodka",
+    is_featured: false,
+    is_on_sale: false,
+  },
+  {
+    id: "arctic-grey-vodka",
+    name: "Arctic Grey Vodka",
+    description: "Smooth filtered vodka",
+    price: 3100,
+    category_name: "Vodka",
+    is_featured: false,
+    is_on_sale: false,
+  },
+];
+
 function App() {
+  const [route, setRoute] = useState(() => getRouteFromLocation());
   const [activeSlide, setActiveSlide] = useState(0);
   const [cardsPerView, setCardsPerView] = useState(4);
   const [bestSellerPage, setBestSellerPage] = useState(0);
   const [discountPage, setDiscountPage] = useState(0);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [categorySort, setCategorySort] = useState("featured");
+  const [selectedCategorySlug, setSelectedCategorySlug] = useState("");
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [saleOnly, setSaleOnly] = useState(false);
 
   const [products, setProducts] = useState([]);
   const [saleProducts, setSaleProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [cartCount, setCartCount] = useState(0);
 
   const sessionId = getSessionId();
 
+  const navigateTo = useCallback((href) => {
+    const url = new URL(href, window.location.origin);
+    const currentPath = window.location.pathname.replace(/\/+$/, "") || "/";
+    const nextPath = url.pathname.replace(/\/+$/, "") || "/";
+
+    if (currentPath === nextPath && window.location.hash === url.hash) {
+      if (url.hash) {
+        document.querySelector(url.hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      return;
+    }
+
+    window.history.pushState({}, "", `${url.pathname}${url.hash}`);
+    setRoute(getRouteFromLocation());
+
+    window.requestAnimationFrame(() => {
+      if (url.hash) {
+        document.querySelector(url.hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }, []);
+
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [productsRes, saleRes, categoriesRes, testimonialsRes] = await Promise.all([
+      const [productsRes, saleRes, allProductsRes, categoriesRes, testimonialsRes] = await Promise.allSettled([
         api.products.getFeatured(),
         api.products.getSale(),
+        api.products.getAll(),
         api.categories.getAll(),
         api.testimonials.getActive(),
       ]);
 
-      setProducts(productsRes.data || []);
-      setSaleProducts(saleRes.data || []);
-      setCategories(categoriesRes.data || []);
-      setTestimonials(testimonialsRes.data || []);
-      setError(null);
+      const featuredData = productsRes.status === "fulfilled" ? productsRes.value.data || [] : [];
+      const saleData = saleRes.status === "fulfilled" ? saleRes.value.data || [] : [];
+      const allData = allProductsRes.status === "fulfilled" ? allProductsRes.value.data || [] : [];
+
+      setProducts(featuredData.length > 0 ? featuredData : fallbackProducts.filter((product) => product.is_featured));
+      setSaleProducts(saleData.length > 0 ? saleData : fallbackProducts.filter((product) => product.is_on_sale));
+      setAllProducts(allData.length > 0 ? allData : fallbackProducts);
+      setCategories(categoriesRes.status === "fulfilled" ? categoriesRes.value.data || [] : []);
+      setTestimonials(testimonialsRes.status === "fulfilled" ? testimonialsRes.value.data || [] : []);
     } catch (err) {
       console.error("Failed to load data:", err);
-      setError("Failed to load products. Please ensure the backend is running.");
+      setProducts(fallbackProducts.filter((product) => product.is_featured));
+      setSaleProducts(fallbackProducts.filter((product) => product.is_on_sale));
+      setAllProducts(fallbackProducts);
     } finally {
       setLoading(false);
     }
@@ -107,6 +318,23 @@ function App() {
     loadData();
     loadCartCount();
   }, [loadData, loadCartCount]);
+
+  useEffect(() => {
+    const syncRoute = () => setRoute(getRouteFromLocation());
+    window.addEventListener("popstate", syncRoute);
+    return () => window.removeEventListener("popstate", syncRoute);
+  }, []);
+
+  useEffect(() => {
+    if (route.name === "category-detail") {
+      setSelectedCategorySlug(route.slug || "");
+      return;
+    }
+
+    if (route.name === "categories-index") {
+      setSelectedCategorySlug("");
+    }
+  }, [route]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -154,22 +382,34 @@ function App() {
     return () => window.clearInterval(timer);
   }, [bestSellerPages.length]);
 
-  const currentBestSellerPage = Math.min(bestSellerPage, bestSellerPages.length - 1);
+  const currentBestSellerPage = bestSellerPages.length > 0
+    ? Math.min(bestSellerPage, bestSellerPages.length - 1)
+    : 0;
 
   const discountPages = [];
   for (let index = 0; index < saleProducts.length; index += 2) {
     discountPages.push(saleProducts.slice(index, index + 2));
   }
 
-  const currentDiscountPage = Math.min(discountPage, discountPages.length - 1);
+  const currentDiscountPage = discountPages.length > 0
+    ? Math.min(discountPage, discountPages.length - 1)
+    : 0;
 
   const showPreviousDiscountPage = () => {
+    if (discountPages.length === 0) {
+      return;
+    }
+
     setDiscountPage((current) =>
       current === 0 ? discountPages.length - 1 : current - 1
     );
   };
 
   const showNextDiscountPage = () => {
+    if (discountPages.length === 0) {
+      return;
+    }
+
     setDiscountPage((current) => (current + 1) % discountPages.length);
   };
 
@@ -200,10 +440,24 @@ function App() {
       await api.cart.add(productId, 1, sessionId);
       await loadCartCount();
       alert("Added to cart!");
-    } catch (err) {
+    } catch {
       alert("Failed to add to cart");
     }
   };
+
+  const handleOpenProductInShop = useCallback((product) => {
+    setSaleOnly(false);
+    setSelectedCategorySlug("");
+    setSearchTerm(product.name || "");
+    navigateTo("/categories");
+  }, [navigateTo]);
+
+  const handleOpenOccasion = useCallback((occasion) => {
+    setSaleOnly(false);
+    setSelectedCategorySlug("");
+    setSearchTerm(occasion.search || "");
+    navigateTo("/categories");
+  }, [navigateTo]);
 
   const formatPrice = (price) => {
     return `KES ${parseFloat(price).toLocaleString()}`;
@@ -212,9 +466,147 @@ function App() {
   const getProductImage = (product) => {
     if (!product.category_name) return whiskeyImage;
     const categoryName = product.category_name.toLowerCase();
-    if (categoryName === 'gin') return ginImage;
-    if (categoryName === 'wine') return wineImage;
+    if (categoryName === "gin") return ginImage;
+    if (categoryName === "wine") return wineImage;
     return whiskeyImage;
+  };
+
+  const getCategoryImage = (categoryName) => {
+    const normalizedName = categoryName?.toLowerCase();
+    if (normalizedName === "gin") return ginImage;
+    if (normalizedName === "wine") return wineImage;
+    return whiskeyImage;
+  };
+
+  const catalogProducts = useMemo(
+    () => dedupeProducts(allProducts.length > 0 ? allProducts : [...products, ...saleProducts]),
+    [allProducts, products, saleProducts],
+  );
+
+  const displayCategories = useMemo(() => {
+    const source = categories.length > 0 ? categories : fallbackCategories;
+
+    return source.map((category) => ({
+      ...category,
+      slug: slugify(category.name || category.id),
+      product_count:
+        category.product_count ??
+        catalogProducts.filter((product) => slugify(product.category_name) === slugify(category.name)).length,
+    }));
+  }, [catalogProducts, categories]);
+
+  const priceBounds = useMemo(() => {
+    if (catalogProducts.length === 0) {
+      return { min: 0, max: 0 };
+    }
+
+    const prices = catalogProducts.map((product) => Number(product.price) || 0);
+    return {
+      min: Math.min(...prices),
+      max: Math.max(...prices),
+    };
+  }, [catalogProducts]);
+
+  useEffect(() => {
+    setMinPrice(0);
+    setMaxPrice(priceBounds.max);
+  }, [priceBounds.max, priceBounds.min]);
+
+  const filteredCatalogProducts = useMemo(() => {
+    const items = catalogProducts.filter((product) => {
+      const productPrice = Number(product.price) || 0;
+      const matchesCategory = !selectedCategorySlug || slugify(product.category_name) === selectedCategorySlug;
+      const matchesPrice = productPrice >= minPrice && productPrice <= maxPrice;
+      const matchesSearch = !searchTerm.trim() || `${product.name} ${product.description || ""} ${product.category_name || ""}`
+        .toLowerCase()
+        .includes(searchTerm.trim().toLowerCase());
+      const matchesSale = !saleOnly || Boolean(product.is_on_sale) || Number(product.original_price) > Number(product.price);
+
+      return matchesCategory && matchesPrice && matchesSearch && matchesSale;
+    });
+
+    if (categorySort === "price-low") {
+      return items.sort((a, b) => Number(a.price) - Number(b.price));
+    }
+
+    if (categorySort === "price-high") {
+      return items.sort((a, b) => Number(b.price) - Number(a.price));
+    }
+
+    if (categorySort === "name") {
+      return items.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return items;
+  }, [catalogProducts, categorySort, maxPrice, minPrice, saleOnly, searchTerm, selectedCategorySlug]);
+
+  const renderCatalogFooter = () => (
+    <section className="catalog-footer" id="contact" aria-label="Catalog footer">
+      <div className="catalog-shell">
+        <div className="catalog-footer-card">
+          <div className="catalog-footer-copy">
+            <span className="catalog-kicker">Shop with confidence</span>
+            <h2>Fast delivery, verified bottles, and cleaner choices.</h2>
+            <p>
+              Browse the full shelf, check current offers, and reach support quickly if you need help
+              picking the right bottle.
+            </p>
+          </div>
+
+          <div className="catalog-footer-links" aria-label="Catalog quick links">
+            <a href="/categories" onClick={(event) => { event.preventDefault(); navigateTo("/categories"); }}>
+              Shop all
+            </a>
+            <a href="/categories" onClick={(event) => {
+              event.preventDefault();
+              setSaleOnly(true);
+              navigateTo("/categories");
+            }}>
+              On sale
+            </a>
+            <a href="/#best-sellers" onClick={(event) => { event.preventDefault(); navigateTo("/#best-sellers"); }}>
+              Best sellers
+            </a>
+            <a href="/#why-tipsy" onClick={(event) => { event.preventDefault(); navigateTo("/#why-tipsy"); }}>
+              Why Tipsy
+            </a>
+          </div>
+
+          <div className="catalog-footer-support">
+            <span className="catalog-support-label">Need help choosing?</span>
+            <p>Support can help with availability, gifting picks, and quick delivery guidance.</p>
+            <a href="/categories" onClick={(event) => {
+              event.preventDefault();
+              setSearchTerm("");
+              setSaleOnly(false);
+              navigateTo("/categories");
+            }}>
+              Talk to support
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
+  const handleCatalogSearchChange = useCallback((value) => {
+    setSearchTerm(value);
+  }, []);
+
+  const handleCatalogSearchSubmit = useCallback(() => {
+    navigateTo(searchTerm.trim() ? "/categories" : "/categories");
+  }, [navigateTo, searchTerm]);
+
+  const navbarProps = {
+    cartCount,
+    homeHref: "/",
+    bestSellersHref: "/#best-sellers",
+    shopHref: "/categories",
+    contactHref: "/#contact",
+    searchTerm,
+    onSearchChange: handleCatalogSearchChange,
+    onSearchSubmit: handleCatalogSearchSubmit,
+    onNavigate: navigateTo,
   };
 
   if (loading) {
@@ -225,11 +617,44 @@ function App() {
     );
   }
 
+  if (route.name === "categories-index" || route.name === "category-detail") {
+    return (
+      <div className="app-shell">
+        <div className="ambient ambient-left" />
+        <div className="ambient ambient-right" />
+        <Navbar {...navbarProps} />
+        <CatalogView
+          categories={displayCategories}
+          selectedCategorySlug={selectedCategorySlug}
+          setSelectedCategorySlug={setSelectedCategorySlug}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          priceBounds={priceBounds}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          saleOnly={saleOnly}
+          setSaleOnly={setSaleOnly}
+          setMinPrice={setMinPrice}
+          setMaxPrice={setMaxPrice}
+          sort={categorySort}
+          setSort={setCategorySort}
+          products={filteredCatalogProducts}
+          productsLoading={loading}
+          getProductImage={getProductImage}
+          formatPrice={formatPrice}
+          handleAddToCart={handleAddToCart}
+          navigateTo={navigateTo}
+          renderFooter={renderCatalogFooter}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
       <div className="ambient ambient-left" />
       <div className="ambient ambient-right" />
-      <Navbar cartCount={cartCount} />
+      <Navbar {...navbarProps} />
 
       <section className="slider-section" id="home" aria-label="Featured highlights">
         <div className="slider-shell">
@@ -289,7 +714,20 @@ function App() {
                   style={{ gridTemplateColumns: `repeat(${group.length}, minmax(0, 1fr))` }}
                 >
                   {group.map((product) => (
-                    <article key={product.id} className="best-seller-card">
+                    <article
+                      key={product.id}
+                      className="best-seller-card"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`View ${product.name} in shop`}
+                      onClick={() => handleOpenProductInShop(product)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          handleOpenProductInShop(product);
+                        }
+                      }}
+                    >
                       <div className="best-seller-image-shell">
                         <img src={getProductImage(product)} alt={product.name} className="best-seller-image" />
                       </div>
@@ -297,7 +735,10 @@ function App() {
                       <button 
                         type="button" 
                         className="best-seller-price"
-                        onClick={() => handleAddToCart(product.id)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleAddToCart(product.id);
+                        }}
                         aria-label={`Add ${product.name} to cart`}
                       >
                         <span className="price-default">{formatPrice(product.price)}</span>
@@ -399,18 +840,116 @@ function App() {
           </div>
 
           <div className="categories-grid">
-            {categories.map((category) => (
+            {displayCategories.map((category) => (
               <article key={category.id} className="category-card">
                 <div className="category-image-shell">
-                  <img src={whiskeyImage} alt={category.name} className="category-image" />
+                  <img
+                    src={getCategoryImage(category.name)}
+                    alt={category.name}
+                    className="category-image"
+                  />
                 </div>
                 <div className="category-copy">
+                  <div className="category-copy-topline">
+                    <span>{category.product_count} bottles</span>
+                  </div>
                   <h3>{category.name}</h3>
                   <p>{category.description}</p>
-                  <a href="#home">Browse {category.name}</a>
+                  <a
+                    href={`/categories/${category.slug}`}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      navigateTo(`/categories/${category.slug}`);
+                    }}
+                  >
+                    Browse {category.name}
+                  </a>
                 </div>
               </article>
             ))}
+          </div>
+        </section>
+
+        <section className="collections-section" id="curated-picks">
+          <div className="occasion-board">
+            <div className="occasion-intro">
+              <span className="catalog-kicker">Curated picks</span>
+              <h2>Start with a ready idea.</h2>
+              <p>Less scrolling. Faster choices.</p>
+            </div>
+
+            <div className="occasion-layout">
+              <article
+                className="occasion-hero"
+                style={{ "--occasion-image": `url(${occasionCards[0].image})` }}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleOpenOccasion(occasionCards[0])}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    handleOpenOccasion(occasionCards[0]);
+                  }
+                }}
+              >
+                <div className="occasion-media" aria-hidden="true" />
+                <div className="occasion-hero-copy">
+                  <span className="occasion-tag">{occasionCards[0].eyebrow}</span>
+                  <strong>{occasionCards[0].accent}</strong>
+                  <h3>{occasionCards[0].title}</h3>
+                </div>
+                <div className="occasion-hero-meta">
+                  <span>{occasionCards[0].detail}</span>
+                  <a
+                    href="/categories"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      handleOpenOccasion(occasionCards[0]);
+                    }}
+                  >
+                    {occasionCards[0].cta}
+                  </a>
+                </div>
+              </article>
+
+              <div className="occasion-rail">
+                {occasionCards.slice(1).map((occasion) => (
+                  <article
+                    key={occasion.id}
+                    className="occasion-tile"
+                    style={{ "--occasion-image": `url(${occasion.image})` }}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleOpenOccasion(occasion)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        handleOpenOccasion(occasion);
+                      }
+                    }}
+                  >
+                    <div className="occasion-media" aria-hidden="true" />
+                    <span className="occasion-tag">{occasion.eyebrow}</span>
+                    <strong>{occasion.accent}</strong>
+                    <h3>{occasion.title}</h3>
+                    <div className="occasion-tile-footer">
+                      <span>{occasion.detail}</span>
+                      <a
+                        href="/categories"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          handleOpenOccasion(occasion);
+                        }}
+                      >
+                        {occasion.cta}
+                      </a>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -490,7 +1029,7 @@ function App() {
           </section>
         )}
 
-        <section className="closing-section" id="cta">
+        <section className="closing-section" id="contact">
           <div className="closing-shell">
             <div className="cta-card">
               <div className="cta-copy">
@@ -558,7 +1097,7 @@ function App() {
                         <ul className="space-y-3 text-base text-neutral-300">
                           <li><a href="#best-sellers" className="hover:text-neutral-400">Best Sellers</a></li>
                           <li><a href="#categories" className="hover:text-neutral-400">Categories</a></li>
-                          <li><a href="#cta" className="hover:text-neutral-400">Weekly Offers</a></li>
+                          <li><a href="#contact" className="hover:text-neutral-400">Weekly Offers</a></li>
                         </ul>
                       </div>
 
@@ -582,7 +1121,7 @@ function App() {
                             <span className="text-[11px] px-2 py-0.5 rounded-full bg-orange-950 border border-orange-300 text-orange-300">LIVE</span>
                           </li>
                           <li><a href="#home" className="hover:text-neutral-400">Westlands, Kilimani, Riverside</a></li>
-                          <li><a href="#cta" className="hover:text-neutral-400">Order tonight</a></li>
+                          <li><a href="#contact" className="hover:text-neutral-400">Order tonight</a></li>
                         </ul>
                       </div>
                     </div>
